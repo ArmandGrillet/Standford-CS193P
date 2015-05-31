@@ -36,9 +36,9 @@ class CalculatorBrain {
             knownOps[op.description] = op
         }
         
-        learnOp(Op.BinaryOperation("+") { + })
+        learnOp(Op.BinaryOperation("+", +))
         learnOp(Op.BinaryOperation("-") { $1 - $0 })
-        learnOp(Op.BinaryOperation("×") { * })
+        learnOp(Op.BinaryOperation("×", *))
         learnOp(Op.BinaryOperation("÷") { $1 / $0 })
     }
 }
