@@ -56,9 +56,9 @@ class ViewController: UIViewController {
         switch operation {
             case "×": performOperation {$0 * $1}
             case "×": performOperation {$0 * $1}
-            case "÷": performOperation {$0 / $1}
+            case "÷": performOperation {$1 / $0}
             case "+": performOperation {$0 + $1}
-            case "-": performOperation {$0 - $1}
+            case "-": performOperation {$1 - $0}
             case "sin": performOperation {sin($0)}
             case "cos": performOperation {cos($0)}
             case "√": performOperation {sqrt($0)}
@@ -76,9 +76,7 @@ class ViewController: UIViewController {
     
     private func performOperation(operation : (Double, Double) -> Double) {
         if operandStack.count >= 2 {
-            let secondOperand = operandStack.removeLast()
-            let firstOperand = operandStack.removeLast()
-            displayValue = operation(firstOperand, secondOperand)
+            displayValue = operation(operandStack.removeLast(), operandStack.removeLast())
         }
     }
     
@@ -89,10 +87,15 @@ class ViewController: UIViewController {
     }
     
     @IBAction func changeSign() {
-        if userIsInTheMiddleOfTypingANumber {
-            self.display.text = "\(-1 * self.displayValue)"
+        if display.text == "0" {
+            display.text = "-0"
         } else {
-            displayValue = -1 * (operandStack.removeLast())
+            let newValue = -1 * displayValue
+            if newValue % 1 != 0 {
+                display.text = "\(newValue)"
+            } else {
+                display.text = "\(Int(newValue))" // Remove the .O part
+            }
         }
     }
     
