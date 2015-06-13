@@ -10,23 +10,33 @@ import UIKit
 
 class ViewController: UIViewController {
     @IBOutlet weak var display: UILabel!
-    @IBOutlet weak var history: UILabel!
+    let history = UIAlertView(title: "History", message: nil, delegate: nil, cancelButtonTitle: "OK")
     
     var userIsInTheMiddleOfTypingANumber = false
-    var operandStack = Array<Double>()
-    var displayValue: Double {
+    var brain = CalculatorBrain()
+    var displayValue: Double? {
         get {
-            return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
+            if let displayedText = display.text {
+                if let displayedNumber = NSNumberFormatter().numberFromString(displayedText) {
+                    return displayedNumber.doubleValue
+                }
+            }
+            return nil
         }
         set {
-            if newValue % 1 != 0 {
-                display.text = "\(newValue)"
+            if let value = newValue {
+                if value != 0 {
+                    if value % 1 != 0 {
+                        display.text = "=\(value)"
+                    } else {
+                    display.text = "=\(Int(value))" // Remove the .O part
+                    }
+                } else {
+                    display.text = "0"
+                }
             } else {
-                display.text = "\(Int(newValue))" // Remove the .O part
+                display.text = " "
             }
-            userIsInTheMiddleOfTypingANumber = false
-            operandStack.append(displayValue)
-            addContentHistory(display.text!)
         }
     }
     
@@ -49,47 +59,34 @@ class ViewController: UIViewController {
         }
     }
     
+    @IBAction func assignVariable(sender: UIButton) {
+        let variable = dropFirst(sender.currentTitle!) // Remove the arrow
+        if let value = displayValue {
+            brain.variableValues[variable] = value
+            userIsInTheMiddleOfTypingANumber = false
+            displayValue = brain.evaluate()
+        }
+    }
+    
+    @IBAction func appendVariable(sender: UIButton) {
+        brain.pushOperand(sender.currentTitle!)
+        userIsInTheMiddleOfTypingANumber = false
+        display.text = sender.currentTitle!
+    }
+    
     @IBAction func operate(sender: UIButton) {
-        enter()
+        enter() // Push the number displayed in the brain
         let operation = sender.currentTitle!
-        addContentHistory(operation)
         switch operation {
-        case "+": performOperation {$0 + $1}
-        case "-": performOperation {$1 - $0}
-        case "×": performOperation {$0 * $1}
-        case "÷": performOperation {$1 / $0}
-        case "sin": performOperation {sin($0)}
-        case "cos": performOperation {cos($0)}
-        case "√": performOperation {sqrt($0)}
+        case "+", "-", "×", "÷", "sin", "cos", "√":
+            displayValue = brain.performOperation(operation)
         default: break
-        }
-    }
-    
-    @IBAction func conjure(sender: UIButton) {
-        let value = sender.currentTitle!
-        switch value {
-        case "π": display.text = String(stringInterpolationSegment: M_PI)
-        default: break
-        }
-    }
-    
-    private func performOperation(operation : (Double, Double) -> Double) {
-        if operandStack.count >= 2 {
-            displayValue = operation(operandStack.removeLast(), operandStack.removeLast())
-        }
-    }
-    
-    private func performOperation(operation: (Double) -> Double) {
-        if operandStack.count >= 1 {
-            displayValue = operation(operandStack.removeLast())
         }
     }
     
     @IBAction func changeSign() {
-        if display.text == "0" {
-            display.text = "-0"
-        } else {
-            let newValue = -1 * displayValue
+        if let displayedValue = displayValue {
+            let newValue = -1 * displayedValue
             if newValue % 1 != 0 {
                 display.text = "\(newValue)"
             } else {
@@ -98,23 +95,20 @@ class ViewController: UIViewController {
         }
     }
     
+    @IBAction func showHistory() {
+        history.message = brain.description
+        history.show()
+    }
+    
     @IBAction func clear() {
         displayValue = 0
-        operandStack = Array<Double>()
-        history.text = ""
+        brain.clear()
     }
     
     @IBAction func enter() {
         userIsInTheMiddleOfTypingANumber = false
-        operandStack.append(displayValue)
-        addContentHistory(display.text!)
-    }
-    
-    private func addContentHistory(content: String) {
-        if history.text != "" {
-            history.text! += " | " + content
-        } else {
-            history.text = content
+        if let operand = displayValue {
+            brain.pushOperand(operand)
         }
     }
 }
