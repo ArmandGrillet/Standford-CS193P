@@ -9,7 +9,7 @@
 import Foundation
 
 class CalculatorBrain {
-    private enum Op: Printable {
+    private enum Op: CustomStringConvertible {
         case Operand(Double)
         case Variable(String)
         case UnaryOperation(String, Double -> Double)
@@ -34,7 +34,7 @@ class CalculatorBrain {
     private var opStack = [Op]()
     private var knownOps = [String:Op]()
     
-    var variableValues = ["π":M_PI]
+    var variableValues = ["π": M_PI]
     var description: String {
         get {
             return describe(opStack).description
@@ -56,7 +56,6 @@ class CalculatorBrain {
     }
     
     private func describe(ops: [Op]) -> (description: String, remainingOps: [Op]) {
-        
         if !ops.isEmpty {
             var remainingOps = ops
             let op = remainingOps.removeLast()
@@ -69,10 +68,10 @@ class CalculatorBrain {
                 }
             case .Variable(let variable):
                 return (variable, remainingOps)
-            case .UnaryOperation(_, let operation):
+            case .UnaryOperation(_, _):
                 let op1 = describe(remainingOps)
                 return ("\(op.description)(\(op1.description))", op1.remainingOps)
-            case .BinaryOperation(_, let operation):
+            case .BinaryOperation(_, _):
                 var op1 = describe(remainingOps)
                 var op2 = describe(op1.remainingOps)
                 

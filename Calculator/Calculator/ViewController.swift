@@ -60,7 +60,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func assignVariable(sender: UIButton) {
-        let variable = dropFirst(sender.currentTitle!) // Remove the arrow
+        let variable = String(sender.currentTitle!.characters.dropFirst()) // Remove the arrow
         if let value = displayValue {
             brain.variableValues[variable] = value
             userIsInTheMiddleOfTypingANumber = false
