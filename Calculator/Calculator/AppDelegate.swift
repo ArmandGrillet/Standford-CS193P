@@ -2,8 +2,8 @@
 //  AppDelegate.swift
 //  Calculator
 //
-//  Created by Armand Grillet on 01/02/2015.
-//  Copyright (c) 2015 Armand Grillet. All rights reserved.
+//  Created by Armand Grillet on 30/04/2016.
+//  Copyright © 2016 Armand Grillet. All rights reserved.
 //
 
 import UIKit
