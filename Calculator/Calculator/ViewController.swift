@@ -9,16 +9,22 @@
 import UIKit
 
 class ViewController: UIViewController {
+    @IBOutlet private weak var history: UILabel!
     @IBOutlet private weak var display: UILabel!
     
     private var brain = CalculatorBrain()
     private var userInTheMiddleOfTyping = false
+    private var userEnteredFloatingPoint = false
     private var displayValue: Double {
         get {
             return Double(display.text!)!
         }
         set {
-            display.text = String(newValue)
+            if newValue % 1 == 0 {
+                display.text = String(format: "%.0f", newValue)
+            } else {
+               display.text = String(newValue)
+            }
         }
     }
     
@@ -30,14 +36,44 @@ class ViewController: UIViewController {
             display.text = digit
         }
         userInTheMiddleOfTyping = true
-        
     }
 
-    @IBAction func performOperation(sender: UIButton) {
-        brain.setOperand(displayValue)
+    @IBAction func touchFloatingPoint() {
+        if userInTheMiddleOfTyping && !userEnteredFloatingPoint {
+            display.text! += "."
+            userEnteredFloatingPoint = true
+        }
+    }
+    
+    @IBAction func clearEverything() {
         userInTheMiddleOfTyping = false
-        brain.performOperation(sender.currentTitle!)
+        userEnteredFloatingPoint = false
+        brain = CalculatorBrain()
         displayValue = brain.result
+        history.text = " "
+    }
+    
+    @IBAction func performOperation(sender: UIButton) {
+        if userInTheMiddleOfTyping {
+            brain.setOperand(displayValue)
+        } else {
+            brain.setOperand(nil)
+        }
+        userInTheMiddleOfTyping = false
+        userEnteredFloatingPoint = false
+        brain.performOperation(sender.currentTitle!)
+        displayHistory()
+        displayValue = brain.result
+    }
+    
+    private func displayHistory() {
+        var description = brain.description
+        description = description.stringByReplacingOccurrencesOfString(".0", withString: "")
+        if brain.isPartialResult {
+            history.text = description + " ... "
+        } else if description != "" {
+            history.text = description + " = "
+        }
     }
 }
 
