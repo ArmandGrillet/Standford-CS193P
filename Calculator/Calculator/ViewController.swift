@@ -9,18 +9,18 @@
 import UIKit
 
 class ViewController: UIViewController {
-    @IBOutlet private weak var history: UILabel!
-    @IBOutlet private weak var display: UILabel!
+    @IBOutlet fileprivate weak var history: UILabel!
+    @IBOutlet fileprivate weak var display: UILabel!
     
-    private var brain = CalculatorBrain()
-    private var userInTheMiddleOfTyping = false
-    private var userEnteredFloatingPoint = false
-    private var displayValue: Double {
+    fileprivate var brain = CalculatorBrain()
+    fileprivate var userInTheMiddleOfTyping = false
+    fileprivate var userEnteredFloatingPoint = false
+    fileprivate var displayValue: Double {
         get {
             return Double(display.text!)!
         }
         set {
-            if newValue % 1 == 0 {
+            if newValue.truncatingRemainder(dividingBy: 1) == 0 {
                 display.text = String(format: "%.0f", newValue)
             } else {
                display.text = String(newValue)
@@ -28,7 +28,7 @@ class ViewController: UIViewController {
         }
     }
     
-    @IBAction func touchDigit(sender: UIButton) {
+    @IBAction func touchDigit(_ sender: UIButton) {
         let digit = sender.currentTitle!
         if userInTheMiddleOfTyping {
             display.text! += digit
@@ -53,7 +53,7 @@ class ViewController: UIViewController {
         history.text = " "
     }
     
-    @IBAction func performOperation(sender: UIButton) {
+    @IBAction func performOperation(_ sender: UIButton) {
         if userInTheMiddleOfTyping {
             brain.setOperand(displayValue)
         } else {
@@ -66,9 +66,9 @@ class ViewController: UIViewController {
         displayValue = brain.result
     }
     
-    private func displayHistory() {
+    fileprivate func displayHistory() {
         var description = brain.description
-        description = description.stringByReplacingOccurrencesOfString(".0", withString: "")
+        description = description.replacingOccurrences(of: ".0", with: "")
         if brain.isPartialResult {
             history.text = description + " ... "
         } else if description != "" {

@@ -22,39 +22,40 @@ class CalculatorBrain {
         }
     }
     
-    private var accumulator = 0.0
-    private var pending: PendingBinaryOperation?
-    private var hasNewAccumulator = false
-    private var hasPartialAccumulator = false
+    fileprivate var accumulator = 0.0
+    fileprivate var pending: PendingBinaryOperation?
+    fileprivate var hasNewAccumulator = false
+    fileprivate var hasPartialAccumulator = false
+    fileprivate var isConstantPrinted = false
     
-    private var operations = [
-        "π": Operation.Constant(M_PI),
-        "e": Operation.Constant(M_E),
-        "√": Operation.UnaryOperation(sqrt),
-        "cos": Operation.UnaryOperation(cos),
-        "sin": Operation.UnaryOperation(sin),
-        "tan": Operation.UnaryOperation(tan),
-        "×": Operation.BinaryOperation({$0 * $1}),
-        "÷": Operation.BinaryOperation({$0 / $1}),
-        "+": Operation.BinaryOperation({$0 + $1}),
-        "−": Operation.BinaryOperation({$0 - $1}),
-        "%": Operation.BinaryOperation({$0 % $1}),
-        "=": Operation.Equals
+    fileprivate var operations = [
+        "π": Operation.constant(M_PI),
+        "e": Operation.constant(M_E),
+        "√": Operation.unaryOperation(sqrt),
+        "cos": Operation.unaryOperation(cos),
+        "sin": Operation.unaryOperation(sin),
+        "tan": Operation.unaryOperation(tan),
+        "×": Operation.binaryOperation({$0 * $1}),
+        "÷": Operation.binaryOperation({$0 / $1}),
+        "+": Operation.binaryOperation({$0 + $1}),
+        "−": Operation.binaryOperation({$0 - $1}),
+        "%": Operation.binaryOperation({$0.truncatingRemainder(dividingBy: $1)}),
+        "=": Operation.equals
     ]
     
-    private enum Operation {
-        case Constant(Double)
-        case UnaryOperation(Double -> Double)
-        case BinaryOperation((Double, Double) -> Double)
-        case Equals
+    fileprivate enum Operation {
+        case constant(Double)
+        case unaryOperation((Double) -> Double)
+        case binaryOperation((Double, Double) -> Double)
+        case equals
     }
     
-    private struct PendingBinaryOperation {
+    fileprivate struct PendingBinaryOperation {
         let binaryFunction: (Double, Double) -> Double
         let firstOperand: Double
     }
     
-    func setOperand(operand: Double?) {
+    func setOperand(_ operand: Double?) {
         if operand != nil {
             accumulator = operand!
             hasNewAccumulator = true
@@ -67,17 +68,18 @@ class CalculatorBrain {
         }
     }
     
-    func performOperation(symbol: String) {
+    func performOperation(_ symbol: String) {
         if let operation = operations[symbol] {
             switch operation {
-            case .Constant(let value):
+            case .constant(let value):
                 if isPartialResult {
                     description += symbol
+                    isConstantPrinted = true
                 } else {
                     description = symbol
                 }
                 accumulator = value
-            case .UnaryOperation(let function):
+            case .unaryOperation(let function):
                 if isPartialResult {
                     description += "\(symbol)(\(accumulator))"
                     hasPartialAccumulator = true
@@ -85,11 +87,11 @@ class CalculatorBrain {
                     description = "\(symbol)(\(description))"
                 }
                 accumulator = function(accumulator)
-            case .BinaryOperation(let function):
+            case .binaryOperation(let function):
                 executePendingBinaryOperation()
                 description += " \(symbol) "
                 pending = PendingBinaryOperation(binaryFunction: function, firstOperand: accumulator)
-            case .Equals:
+            case .equals:
                 executePendingBinaryOperation()
             }
         }
@@ -100,7 +102,11 @@ class CalculatorBrain {
             if hasPartialAccumulator {
                 hasPartialAccumulator = false
             } else {
-                description += "\(accumulator)"
+                if !isConstantPrinted {
+                    description += "\(accumulator)"
+                } else {
+                    isConstantPrinted = false
+                }
             }
             accumulator = pending!.binaryFunction(pending!.firstOperand, accumulator)
             pending = nil
